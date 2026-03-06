@@ -70,7 +70,25 @@ python_dqi_cli \
   --tokenizer-json models/ner_onnx/tokenizer.json \
   --max-len 256 \
   --onnx-intra-threads 1 \
-  --onnx-inter-threads 1
+  --onnx-inter-threads 1 \
+  --onnx-session-pool-size 1
+```
+
+W trybie `small_parallel` mozna uruchomic pule sesji ONNX:
+
+```bash
+python_dqi_cli \
+  --input-dir samples \
+  --output-dir outputs \
+  --mode small_parallel \
+  --workers 4 \
+  --semantic-backend onnx \
+  --onnx-model models/ner_onnx/model.onnx \
+  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --max-len 256 \
+  --onnx-intra-threads 1 \
+  --onnx-inter-threads 1 \
+  --onnx-session-pool-size 4
 ```
 
 ## Rust CLI

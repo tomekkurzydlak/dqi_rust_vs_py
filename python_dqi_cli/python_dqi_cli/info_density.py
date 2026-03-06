@@ -82,7 +82,11 @@ class OnnxInfoDensityEngine:
         max_len: int = 256,
         intra_threads: int = 1,
         inter_threads: int = 1,
+        session_pool_size: int = 1,
     ) -> None:
+        if session_pool_size < 1:
+            raise ValueError("session_pool_size must be >= 1")
+
         self.backend = "onnx_token_classification"
         self.max_len = max_len
         self.tokenizer = Tokenizer.from_file(str(tokenizer_json))
@@ -90,13 +94,26 @@ class OnnxInfoDensityEngine:
         options.intra_op_num_threads = intra_threads
         options.inter_op_num_threads = inter_threads
         options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.session = ort.InferenceSession(
-            str(onnx_model),
-            sess_options=options,
-            providers=["CPUExecutionProvider"],
-        )
-        self.input_names = [x.name for x in self.session.get_inputs()]
-        self._lock = threading.Lock()
+        self._sessions: list[ort.InferenceSession] = []
+        self._session_locks: list[threading.Lock] = []
+        for _ in range(session_pool_size):
+            session = ort.InferenceSession(
+                str(onnx_model),
+                sess_options=options,
+                providers=["CPUExecutionProvider"],
+            )
+            self._sessions.append(session)
+            self._session_locks.append(threading.Lock())
+
+        self.input_names = [x.name for x in self._sessions[0].get_inputs()]
+        self._rr_lock = threading.Lock()
+        self._next_session = 0
+
+    def _acquire_session_slot(self) -> tuple[ort.InferenceSession, threading.Lock]:
+        with self._rr_lock:
+            idx = self._next_session
+            self._next_session = (self._next_session + 1) % len(self._sessions)
+        return self._sessions[idx], self._session_locks[idx]
 
     def _infer_entity_count(self, text: str) -> tuple[int, float]:
         encoded = self.tokenizer.encode(text, add_special_tokens=True)
@@ -114,8 +131,9 @@ class OnnxInfoDensityEngine:
             feeds[self.input_names[2]] = np.array([token_type_ids], dtype=np.int64)
 
         t0 = time.perf_counter()
-        with self._lock:
-            logits = self.session.run(None, feeds)[0]
+        session, session_lock = self._acquire_session_slot()
+        with session_lock:
+            logits = session.run(None, feeds)[0]
         model_ms = (time.perf_counter() - t0) * 1000.0
 
         pred = np.argmax(logits, axis=-1)[0]
