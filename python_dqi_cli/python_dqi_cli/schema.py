@@ -8,6 +8,7 @@ from typing import Any
 class Timing:
     processing_ms: float
     model_inference_ms: float
+    rss_delta_mb: float
 
 
 @dataclass

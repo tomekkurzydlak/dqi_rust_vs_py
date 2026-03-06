@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 pub struct Timing {
     pub processing_ms: f64,
     pub model_inference_ms: f64,
+    pub rss_delta_mb: f64,
 }
 
 #[derive(Serialize, Clone)]

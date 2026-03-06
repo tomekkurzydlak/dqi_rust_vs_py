@@ -75,6 +75,7 @@ def process_document(path: Path, text: str, info_engine: SemanticEngine, weights
     processing_ms = (time.perf_counter() - t0) * 1000.0
     rss_after = process.memory_info().rss / (1024 * 1024)
 
+    rss_delta = max(0.0, rss_after - rss_before)
     result = DocumentResult(
         doc_id=path.stem,
         path=str(path),
@@ -92,9 +93,9 @@ def process_document(path: Path, text: str, info_engine: SemanticEngine, weights
             perplexity_score=None,
             dqi_total=dqi_total,
         ),
-        timing=Timing(processing_ms=processing_ms, model_inference_ms=model_ms),
+        timing=Timing(processing_ms=processing_ms, model_inference_ms=model_ms, rss_delta_mb=rss_delta),
     )
-    return result, max(0.0, rss_after - rss_before)
+    return result, rss_delta
 
 
 def run_benchmark(

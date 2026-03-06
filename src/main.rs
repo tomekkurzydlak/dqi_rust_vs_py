@@ -202,6 +202,7 @@ fn process_doc(
 
     sys.refresh_all();
     let rss_after = rss_mb(&mut sys, pid);
+    let rss_delta_mb = (rss_after - rss_before).max(0.0);
 
     let mut features = BTreeMap::<String, Value>::new();
     features.insert("coverage".to_string(), serde_json::to_value(coverage)?);
@@ -228,10 +229,11 @@ fn process_doc(
         timing: Timing {
             processing_ms,
             model_inference_ms,
+            rss_delta_mb,
         },
     };
 
-    Ok((result, (rss_after - rss_before).max(0.0)))
+    Ok((result, rss_delta_mb))
 }
 
 fn collect_docs(input_dir: &Path) -> Result<Vec<LoadedDoc>> {
