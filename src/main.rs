@@ -52,6 +52,8 @@ struct Cli {
     onnx_intra_threads: usize,
     #[arg(long, default_value_t = 1)]
     onnx_inter_threads: usize,
+    #[arg(long)]
+    onnx_session_pool_size: Option<usize>,
     #[arg(long, default_value = "0.30,0.25,0.25,0.20")]
     weights: String,
 }
@@ -72,6 +74,11 @@ fn main() -> Result<()> {
         anyhow::bail!("No .md files found in {}", cli.input_dir.display());
     }
 
+    let onnx_session_pool_size = cli.onnx_session_pool_size.unwrap_or(match cli.mode {
+        Mode::Sequential => 1,
+        Mode::SmallParallel => cli.workers.max(1),
+    });
+
     let semantic_engine: Arc<dyn SemanticEngine> = match (cli.onnx_model.as_ref(), cli.tokenizer_json.as_ref()) {
         (Some(model), Some(tokenizer)) => Arc::new(OnnxNerSemanticEngine::load(
             model,
@@ -79,6 +86,7 @@ fn main() -> Result<()> {
             cli.onnx_max_len,
             cli.onnx_intra_threads,
             cli.onnx_inter_threads,
+            onnx_session_pool_size,
         )?),
         (None, None) => Arc::new(FallbackSemanticEngine),
         _ => anyhow::bail!("--onnx-model and --tokenizer-json must be provided together"),

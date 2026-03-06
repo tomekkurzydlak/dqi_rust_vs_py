@@ -6,6 +6,7 @@ use ort::value::Tensor;
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tokenizers::Tokenizer;
@@ -85,7 +86,8 @@ impl SemanticEngine for FallbackSemanticEngine {
 
 pub struct OnnxNerSemanticEngine {
     tokenizer: Tokenizer,
-    session: Arc<Mutex<Session>>,
+    sessions: Arc<Vec<Mutex<Session>>>,
+    next_session: AtomicUsize,
     max_len: usize,
 }
 
@@ -96,26 +98,36 @@ impl OnnxNerSemanticEngine {
         max_len: usize,
         intra_threads: usize,
         inter_threads: usize,
+        session_pool_size: usize,
     ) -> Result<Self> {
+        if session_pool_size == 0 {
+            anyhow::bail!("session_pool_size must be >= 1");
+        }
+
         let tokenizer = Tokenizer::from_file(tokenizer_path)
             .map_err(|e| anyhow::anyhow!(e.to_string()))
             .with_context(|| format!("failed to load tokenizer from {}", tokenizer_path.display()))?;
 
-        let mut builder = Session::builder()?
-            .with_intra_threads(intra_threads)
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?
-            .with_inter_threads(inter_threads)
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?
-            .with_optimization_level(GraphOptimizationLevel::All)
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        let mut sessions = Vec::with_capacity(session_pool_size);
+        for _ in 0..session_pool_size {
+            let mut builder = Session::builder()?
+                .with_intra_threads(intra_threads)
+                .map_err(|e| anyhow::anyhow!(e.to_string()))?
+                .with_inter_threads(inter_threads)
+                .map_err(|e| anyhow::anyhow!(e.to_string()))?
+                .with_optimization_level(GraphOptimizationLevel::All)
+                .map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
-        let session = builder
-            .commit_from_file(model_path)
-            .with_context(|| format!("failed to load ONNX from {}", model_path.display()))?;
+            let session = builder
+                .commit_from_file(model_path)
+                .with_context(|| format!("failed to load ONNX from {}", model_path.display()))?;
+            sessions.push(Mutex::new(session));
+        }
 
         Ok(Self {
             tokenizer,
-            session: Arc::new(Mutex::new(session)),
+            sessions: Arc::new(sessions),
+            next_session: AtomicUsize::new(0),
             max_len,
         })
     }
@@ -160,7 +172,10 @@ impl OnnxNerSemanticEngine {
             Tensor::<i64>::from_array(([1i64, seq_len as i64], token_type_ids))?;
 
         let t0 = Instant::now();
-        let mut session = self.session.lock().expect("onnx session mutex poisoned");
+        let session_idx = self.next_session.fetch_add(1, Ordering::Relaxed) % self.sessions.len();
+        let mut session = self.sessions[session_idx]
+            .lock()
+            .expect("onnx session mutex poisoned");
         let input_count = session.inputs().len();
 
         let outputs = match input_count {

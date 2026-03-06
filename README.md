@@ -107,7 +107,24 @@ cargo run --release --bin rust_dqi_cli -- \
   --tokenizer-json models/ner_onnx/tokenizer.json \
   --onnx-max-len 256 \
   --onnx-intra-threads 1 \
-  --onnx-inter-threads 1
+  --onnx-inter-threads 1 \
+  --onnx-session-pool-size 1
+```
+
+W trybie `small_parallel` mozna zwiekszyc wspolbieznosc inferencji przez pule sesji:
+
+```bash
+cargo run --release --bin rust_dqi_cli -- \
+  --input-dir samples \
+  --output-dir outputs \
+  --mode small_parallel \
+  --workers 4 \
+  --onnx-model models/ner_onnx/model.onnx \
+  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --onnx-max-len 256 \
+  --onnx-intra-threads 1 \
+  --onnx-inter-threads 1 \
+  --onnx-session-pool-size 4
 ```
 
 ## Benchmark metryki
@@ -159,3 +176,4 @@ Artefakty:
 - Rust wariant nie uzywa runtime Python (brak PyO3, brak subprocess do Pythona).
 - Jakosc info_density w Rust zalezy od zgodnosci exportu ONNX i tokenizera z modelem z ekosystemu Python.
 - Fallback semantyczny jest uzywany tylko gdy nie podasz argumentow ONNX. Gdy podasz ONNX i inicjalizacja sie nie powiedzie, CLI konczy sie bledem, aby uniknac przypadkowego uruchomienia nieporownywalnego benchmarku.
+- Dla `onnx-session-pool-size > 1` rosnie zuzycie RAM (kazda sesja laduje model), ale spada latency w trybie wspolbieznym.
