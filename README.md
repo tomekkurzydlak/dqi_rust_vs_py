@@ -9,6 +9,8 @@ To nie jest serwis HTTP. Benchmark mierzy tylko steady-state processing po zalad
 
 ## Struktura repo
 
+- `datasets/` - manifest i pobierane zestawy benchmarkowe
+- `models/` - wyeksportowane artefakty ONNX i tokenizer
 - `samples/` - przykladowe dokumenty `.md`
 - `outputs/` - wyniki JSON i report
 - `python_dqi_cli/` - implementacja Python 3.11+
@@ -41,6 +43,11 @@ cd /Users/tomek/IdeaProjects/poc1
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -e ./python_dqi_cli
+```
+
+Instalacja modelu spaCy jest potrzebna tylko dla backendu `spacy`:
+
+```bash
 python -m spacy download en_core_web_sm
 ```
 
@@ -51,7 +58,7 @@ python_dqi_cli --input-dir samples --output-dir outputs --mode sequential
 python_dqi_cli --input-dir samples --output-dir outputs --mode small_parallel --workers 4
 ```
 
-### Uruchomienie ONNX-aligned (rownorzedne z Rust)
+### Uruchomienie ONNX-aligned
 
 ```bash
 python_dqi_cli \
@@ -75,13 +82,13 @@ cd /Users/tomek/IdeaProjects/poc1
 cargo build --release
 ```
 
-### Uruchomienie bez ONNX (fallback semantyczny)
+### Uruchomienie bez ONNX
 
 ```bash
 cargo run --release --bin rust_dqi_cli -- --input-dir samples --output-dir outputs --mode sequential
 ```
 
-### Uruchomienie z ONNX (docelowy wariant PoC)
+### Uruchomienie z ONNX
 
 1. Wyeksportuj model token-classification i tokenizer:
 
@@ -147,7 +154,7 @@ Artefakty:
 - `outputs/aligned_seq_diff.json`
 - `outputs/aligned_seq_diff.md`
 
-## Ograniczenia techniczne (uczciwie)
+## Ograniczenia techniczne
 
 - Rust wariant nie uzywa runtime Python (brak PyO3, brak subprocess do Pythona).
 - Jakosc info_density w Rust zalezy od zgodnosci exportu ONNX i tokenizera z modelem z ekosystemu Python.
