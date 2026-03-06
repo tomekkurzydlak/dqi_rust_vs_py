@@ -1,0 +1,32 @@
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Rust
+/target/
+
+# Python
+/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Packaging
+*.egg-info/
+python_dqi_cli/*.egg-info/
+
+# Generated benchmark artifacts
+/outputs/
+/comparison_report.md
+/output/
+
+# Downloaded/derived model artifacts
+/models/
+
+# Downloaded dataset files (keep manifest only)
+/datasets/web_md/*.md
+!/datasets/web_md/manifest.tsv

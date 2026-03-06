@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-dqi-cli"
+version = "0.1.0"
+description = "PoC CLI for DQI scoring on Markdown documents"
+requires-python = ">=3.11"
+dependencies = [
+  "psutil>=5.9",
+  "spacy>=3.7",
+  "onnxruntime>=1.18",
+  "tokenizers>=0.22",
+  "numpy>=1.24",
+]
+
+[project.scripts]
+python_dqi_cli = "python_dqi_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["python_dqi_cli*"]
