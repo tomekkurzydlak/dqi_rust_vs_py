@@ -1,0 +1,11 @@
+{
+  "mode": "small_parallel",
+  "docs_count": 16,
+  "rss_loaded_mb": 771.53125,
+  "peak_rss_mb": 1621.40625,
+  "avg_rss_delta_per_doc_mb": 209.4384765625,
+  "avg_processing_ms_per_doc": 574.683981875,
+  "p95_processing_ms_per_doc": 977.13125,
+  "avg_model_inference_ms_per_doc": 554.9483411250001,
+  "total_batch_ms": 2717.559625
+}
