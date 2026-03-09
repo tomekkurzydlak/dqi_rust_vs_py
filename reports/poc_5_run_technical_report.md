@@ -139,12 +139,7 @@ W finalnym benchmarku PoC do obydwu implementacji zostal uzyty ten sam model NER
 
 Python CLI jest zaimplementowany dla `Python 3.11+`. Interfejs CLI jest zbudowany przez `argparse`.
 
-Istnieja dwa backendy semantyczne:
-
-- `spacy`
-- `onnx`
-
-W finalnym benchmarku 5-run PoC wykorzystano backend `onnx`, a nie `spacy`, zeby porownanie z Rust bylo modelowo rownorzedne.
+W finalnym benchmarku 5-run PoC wykorzystano backend `onnx`.
 
 Implementacja semantyczna Python ONNX:
 
@@ -162,8 +157,6 @@ Istotne szczegoly:
 - `max_len = 256`
 - `onnx-session-pool-size = 4` w trybie `small_parallel`
 - `workers = 4`
-
-Wazne jest to, ze w Pythonie w finalnym benchmarku nie porownywano `spaCy vs Rust`, tylko `Python ONNX vs Rust ONNX`, zeby nie mylic porownania jezyka z porownaniem dwoch roznych frameworkow NLP.
 
 ## 6. Rust CLI: technikalia implementacyjne
 
@@ -209,7 +202,7 @@ To oznacza, ze:
 - Python i Rust uzywaja tego samego tokenizatora modelowego
 - `entity_count` po obu stronach jest liczony na podstawie predykcji token-classification z tego samego modelu
 
-Finalny benchmark nie jest benchmarkiem `spaCy` przeciwko Rust. Jest to benchmark porownujacy dwa wdrozenia tego samego podejscia modelowego ONNX.
+Finalny benchmark jest benchmarkiem porownujacym dwa wdrozenia tego samego podejscia modelowego ONNX.
 
 ### 7.1. Jak model zostal wyeksportowany do ONNX
 
@@ -232,7 +225,6 @@ W praktyce sciezka eksportu i uruchomienia obejmuje nastepujace biblioteki:
 - `tokenizers` jako modelowy tokenizer po stronie Python i Rust
 - `numpy` do budowy wejsc tensorowych i prostego postprocessingu wyjsc modelu po stronie Python
 - `ort` jako rustowy binding do ONNX Runtime po stronie Rust
-- `spacy` jako alternatywny backend semantyczny w Python CLI, obecny w repo, ale nieuzywany w finalnym benchmarku 5-run ONNX vs ONNX
 
 Artefakty zapisane po eksporcie:
 
