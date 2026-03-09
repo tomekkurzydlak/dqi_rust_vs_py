@@ -299,6 +299,17 @@ Wszystkie 5 finalnych przebiegow PoC wykonano w tym samym trybie:
 - `onnx_inter_threads = 1`
 - `docs_count = 16`
 
+Parametr `max_len = 256` oznacza, ze model ONNX dostaje maksymalnie `256` tokenow modelowych na dokument. Jest to wartosc mniejsza od klasycznego limitu `512` tokenow spotykanego w wielu modelach BERT, ale zostala wybrana swiadomie jako kompromis pomiedzy kosztem inferencji a iloscia dostepnego kontekstu.
+
+W praktyce:
+
+- `256` nie oznacza pelnej analizy bardzo dlugiego dokumentu
+- dluzsze dokumenty sa obcinane do pierwszych `256` tokenow modelowych
+- taki limit zmniejsza koszt CPU i RAM
+- taki limit stabilizuje czasy benchmarku i ogranicza rozjazdy miedzy runami
+
+W tym PoC `256` nalezy traktowac jako ustawienie benchmarkowe i kontrolny kompromis wydajnosciowy, a nie jako automatycznie docelowa wartosc produkcyjna. W przyszlym etapie warto porownac przynajmniej warianty `128`, `256` i `512`, aby okreslic najlepszy punkt rownowagi miedzy jakoscia sygnalu semantycznego a kosztem przetwarzania.
+
 ### 9.3. Komendy uruchomieniowe
 
 Python:
