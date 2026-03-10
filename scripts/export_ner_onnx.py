@@ -3,8 +3,8 @@
 
 Example:
 python scripts/export_ner_onnx.py \
-  --model dslim/bert-base-NER \
-  --output-dir models/ner_onnx
+  --model pczarnik/herbert-base-ner \
+  --output-dir models/ner_onnx_pl_herbert
 """
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ from pathlib import Path
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--model", default="dslim/bert-base-NER")
-    p.add_argument("--output-dir", type=Path, default=Path("models/ner_onnx"))
+    p.add_argument("--model", default="pczarnik/herbert-base-ner")
+    p.add_argument("--output-dir", type=Path, default=Path("models/ner_onnx_pl_herbert"))
     return p.parse_args()
 
 

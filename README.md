@@ -66,8 +66,8 @@ python_dqi_cli \
   --output-dir outputs \
   --mode sequential \
   --semantic-backend onnx \
-  --onnx-model models/ner_onnx/model.onnx \
-  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --onnx-model models/ner_onnx_pl_herbert/model.onnx \
+  --tokenizer-json models/ner_onnx_pl_herbert/tokenizer.json \
   --max-len 256 \
   --onnx-intra-threads 1 \
   --onnx-inter-threads 1 \
@@ -83,8 +83,8 @@ python_dqi_cli \
   --mode small_parallel \
   --workers 4 \
   --semantic-backend onnx \
-  --onnx-model models/ner_onnx/model.onnx \
-  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --onnx-model models/ner_onnx_pl_herbert/model.onnx \
+  --tokenizer-json models/ner_onnx_pl_herbert/tokenizer.json \
   --max-len 256 \
   --onnx-intra-threads 1 \
   --onnx-inter-threads 1 \
@@ -111,7 +111,13 @@ cargo run --release --bin rust_dqi_cli -- --input-dir samples --output-dir outpu
 1. Wyeksportuj model token-classification i tokenizer:
 
 ```bash
-python scripts/export_ner_onnx.py --model dslim/bert-base-NER --output-dir models/ner_onnx
+python scripts/export_ner_onnx.py --model pczarnik/herbert-base-ner --output-dir models/ner_onnx_pl_herbert
+```
+
+Alternatywnie (model z CLARIN):
+
+```bash
+python scripts/export_ner_onnx.py --model clarin-pl/FastPDN --output-dir models/ner_onnx_pl_fastpdn
 ```
 
 2. Uruchom Rust CLI z artefaktami modelu:
@@ -121,8 +127,8 @@ cargo run --release --bin rust_dqi_cli -- \
   --input-dir samples \
   --output-dir outputs \
   --mode sequential \
-  --onnx-model models/ner_onnx/model.onnx \
-  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --onnx-model models/ner_onnx_pl_herbert/model.onnx \
+  --tokenizer-json models/ner_onnx_pl_herbert/tokenizer.json \
   --onnx-max-len 256 \
   --onnx-intra-threads 1 \
   --onnx-inter-threads 1 \
@@ -137,8 +143,8 @@ cargo run --release --bin rust_dqi_cli -- \
   --output-dir outputs \
   --mode small_parallel \
   --workers 4 \
-  --onnx-model models/ner_onnx/model.onnx \
-  --tokenizer-json models/ner_onnx/tokenizer.json \
+  --onnx-model models/ner_onnx_pl_herbert/model.onnx \
+  --tokenizer-json models/ner_onnx_pl_herbert/tokenizer.json \
   --onnx-max-len 256 \
   --onnx-intra-threads 1 \
   --onnx-inter-threads 1 \
